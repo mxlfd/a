@@ -1,0 +1,19 @@
+name: CI
+
+on: [push, workflow_dispatch]
+
+jobs:
+  x:
+    runs-on: ubuntu-latest
+    steps:
+    
+      # - uses: actions/checkout@v3
+
+      # print all variables available to runner
+      - run: env | sort
+
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+

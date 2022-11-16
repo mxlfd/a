@@ -1,0 +1,5 @@
+https://github.com/new
+a
+
+git remote add origin https://github.com/mxlfd/a.git
+git push -u origin master
