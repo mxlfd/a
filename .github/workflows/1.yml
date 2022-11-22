@@ -4,7 +4,7 @@ on:
   # push to main
   push:
     branches: 
-      [ main ]
+      [ master ]
   # pull request
   pull_request:
 
@@ -20,6 +20,9 @@ jobs:
     # some run from pull requests
     # some when you merge a commit to main
     steps:
+
+      # print all variables available to runner
+      - run: env | sort
 
       # checks out the configuration .tf files
       - name: Checkout
