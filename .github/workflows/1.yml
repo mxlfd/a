@@ -1,18 +1,98 @@
-name: CI
-
-on: [push, workflow_dispatch]
+on: 
+  # manual trigger
+  workflow_dispatch:
+  # push to main
+  push:
+    branches: 
+      [ main ]
+  # pull request
+  pull_request:
 
 jobs:
   x:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: "us-west-2"
+
+    # this job does not run every step when you trigger the action
+    # some run from pull requests
+    # some when you merge a commit to main
     steps:
-    
-      # - uses: actions/checkout@v3
 
-      # print all variables available to runner
-      - run: env | sort
+      # checks out the configuration .tf files
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      # retrieve the Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        #with:
+          # optionally set version --
+          # terraform_version: 0.13.0:
+          # for terraform cloud --
+          # cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      # checks whether the configuration has been properly formatted
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      # initializes the configuration
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      
+      # validates the configuration
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      # Since main.tf configures the Terraform Cloud integration, 
+      # this step triggers a remote plan run in the Terraform Cloud
+      # only runs on pull requests
+      # when the PR is merged, that plan will be applied
+      # will continue even on error - allows next step to display the plan error message
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      # adds a comment to the pull request with the results of 
+      # format, init and plan steps
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### terraform fmt \`${{ steps.fmt.outcome }}\`
+            #### terraform init \`${{ steps.init.outcome }}\`
+            #### terraform validate \`${{ steps.validate.outcome }}\`
+            #### terraform plan \`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      # if plan failed
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      # if not failed, and push is to main
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
+
