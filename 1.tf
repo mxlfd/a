@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "4.38.0"
     }
   }
@@ -27,10 +27,10 @@ provider "aws" {
 
 
 resource "aws_s3_bucket" "test" {
-    bucket = "ml-terraformstatetesting-1234" 
-      tags = {
-        X        = "x"
-    }  
+  bucket = "ml-terraformstatetesting-1234"
+  tags = {
+    X = "x"
+  }
 }
 
 
