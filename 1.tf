@@ -8,18 +8,18 @@ terraform {
 }
 
 ####################################
-variable "aws_access_key" {
+variable "AWS_ACCESS_KEY_ID" {
   sensitive = true
 }
 
-variable "aws_secret_key" {
+variable "AWS_SECRET_ACCESS_KEY" {
   sensitive = true
 }
 
 ####################################
 provider "aws" {
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
+  access_key = var.AWS_ACCESS_KEY_ID
+  secret_key = var.AWS_SECRET_ACCESS_KEY
   region     = "us-west-2"
 }
 
@@ -39,3 +39,4 @@ resource "aws_s3_bucket" "test" {
 # $ export AWS_ACCESS_KEY_ID="anaccesskey"
 # $ export AWS_SECRET_ACCESS_KEY="asecretkey"
 # see 1password for details
+# 
