@@ -41,16 +41,13 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
+        continue-on-error: true
 
       # initializes the configuration
       - name: Terraform Init
         id: init
         run: terraform init
       
-      # validates the configuration
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
 
       # Since main.tf configures the Terraform Cloud integration, 
       # this step triggers a remote plan run in the Terraform Cloud
