@@ -1,33 +1,25 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "4.38.0"
-    }
-  }
-}
 
-####################################
-variable "AWS_ACCESS_KEY_ID" {
-  sensitive = true
-}
-
-variable "AWS_SECRET_ACCESS_KEY" {
-  sensitive = true
-}
-
-####################################
 provider "aws" {
-  access_key = var.AWS_ACCESS_KEY_ID
-  secret_key = var.AWS_SECRET_ACCESS_KEY
   region     = "us-west-2"
 }
 
-####################################
+terraform {
+  backend "s3" {
+
+    bucket         = "terraform-backend-7473495794370"
+    key            = "global/s3/terraform.tfstate"
+    region         = "us-west-2"
+
+    dynamodb_table = "terraform-backend-locks-324293847"
+    encrypt        = true
+  }
+}
+
+
 
 
 resource "aws_s3_bucket" "test" {
-  bucket = "ml-terraformstatetesting-1234"
+  bucket = "ml-terraformstatetesting-2345"
   tags = {
     X = "x"
   }
@@ -40,3 +32,10 @@ resource "aws_s3_bucket" "test" {
 # $ export AWS_SECRET_ACCESS_KEY="asecretkey"
 # see 1password for details
 # 
+
+
+# write whole flow step by step to audience
+# 
+# output plan in pull request ugly
+#
+# remote backend - will it work
