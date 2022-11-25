@@ -76,8 +76,7 @@ jobs:
               ```
               ${process.env.PLAN}
               ```
-
-              * github.event_name: \`${{ github.event_name }}\`*`;
+                  `;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
