@@ -73,8 +73,9 @@ jobs:
               ### terraform fmt \`${{ steps.fmt.outcome }}\`
               ### terraform plan, outcome \`${{ steps.plan.outcome }}\`
               ### terraform plan, output:
-              
+              ```
               ${process.env.PLAN}
+              ```
 
               * github.event_name: \`${{ github.event_name }}\`*`;
 
