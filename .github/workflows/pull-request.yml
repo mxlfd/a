@@ -43,19 +43,19 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const output = `
-              ### terraform fmt \`${{ steps.fmt.outcome }}\`
-              ### terraform plan, outcome \`${{ steps.plan.outcome }}\`
-              ### terraform plan, output:
+              ### terraform plan outcome \`${{ steps.plan.outcome }}\`
               \`\`\`\n
               ${process.env.PLAN}
               \`\`\`
                 `;
 
+            const output2 = `${process.env.PLAN}`;
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: output
+              body: output2
             })
 
       - name: Terraform fmt failure fails
