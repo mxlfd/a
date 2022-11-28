@@ -18,6 +18,8 @@ jobs:
 
       - name: Copy code to runner
         uses: actions/checkout@v3
+        with: 
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v1
