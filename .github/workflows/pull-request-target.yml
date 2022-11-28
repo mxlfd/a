@@ -1,0 +1,68 @@
+on: 
+  workflow_dispatch:
+  pull_request_target:
+
+
+jobs:
+  terraform-checks:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: "us-west-2"
+
+
+    steps:
+
+      - run: env | sort
+
+      - name: Copy code to runner
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v1
+
+      - name: terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: terraform init
+        id: init
+        run: terraform init
+      
+      - name: terraform plan
+        id: plan
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      - uses: actions/github-script@v6
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `
+              ### terraform plan outcome \`${{ steps.plan.outcome }}\`
+              \`\`\`\n
+              ${process.env.PLAN}
+              \`\`\`
+                `;
+
+            const output2 = `${process.env.PLAN}`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output2
+            })
+
+      - name: Terraform fmt failure fails
+        if: steps.fmt.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform plan failure fails
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
