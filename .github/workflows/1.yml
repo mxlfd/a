@@ -41,16 +41,13 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
+        continue-on-error: true
 
       # initializes the configuration
       - name: Terraform Init
         id: init
         run: terraform init
       
-      # validates the configuration
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
 
       # Since main.tf configures the Terraform Cloud integration, 
       # this step triggers a remote plan run in the Terraform Cloud
@@ -72,16 +69,15 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### terraform fmt \`${{ steps.fmt.outcome }}\`
-            #### terraform init \`${{ steps.init.outcome }}\`
-            #### terraform validate \`${{ steps.validate.outcome }}\`
-            #### terraform plan \`${{ steps.plan.outcome }}\`
-            <details><summary>Show Plan</summary>
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-            </details>
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            const output = `
+              ### terraform fmt \`${{ steps.fmt.outcome }}\`
+              ### terraform plan, outcome \`${{ steps.plan.outcome }}\`
+              ### terraform plan, output:
+              \`\`\`\n
+              ${process.env.PLAN}
+              \`\`\`
+                `;
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -89,8 +85,12 @@ jobs:
               body: output
             })
 
-      # if plan failed
-      - name: Terraform Plan Status
+
+      - name: Terraform fmt failure fails
+        if: steps.fmt.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform plan failure fails
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
@@ -98,5 +98,4 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
-
 
