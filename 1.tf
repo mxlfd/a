@@ -23,7 +23,7 @@ resource "aws_s3_bucket" "test" {
   bucket = "ml-terraformstatetesting-2345"
 
   tags = {
-    X = "x"
+    X = "q"
   }
 }
 
