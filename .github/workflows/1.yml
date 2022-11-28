@@ -73,10 +73,10 @@ jobs:
               ### terraform fmt \`${{ steps.fmt.outcome }}\`
               ### terraform plan, outcome \`${{ steps.plan.outcome }}\`
               ### terraform plan, output:
-              ```
+              \`\`\`\n
               ${process.env.PLAN}
-              ```
-                  `;
+              \`\`\`
+                `;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
